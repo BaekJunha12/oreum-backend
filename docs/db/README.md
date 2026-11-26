@@ -12,13 +12,14 @@
 | B. 원정대 · 역할 · 초대 | `projects`, `project_roles`, `project_members`, `project_member_roles`, `project_invitations`, `invitation_roles` | `projects` |
 | B. 기획안 · 루트 | `plan_documents`, `checkpoints`, `checkpoint_tasks` | `plans` |
 | C. 넘겨주기 카드 | `handoff_cards`, `card_links`, `card_events` | `handoffs` |
-| D. 방 · 대화 | `rooms`, `room_messages`, `message_attachments`, `room_reads` | (예정) |
+| D. 방 · 대화 | `rooms`, `room_messages`, `message_attachments`, `room_reads` | `rooms` |
 | E. 알림 | `notifications` | (예정) |
 | F · G (2차) | GitHub 연결 · 버전 비교 · 회고 | 범위 확정 전 |
 
 ## ERD 에 없지만 코드에 있는 것
 
 - `card_events.event_id` 는 `카드id:기록id` 로 저장해요. 프론트의 기록 id 는 카드 안에서만 겹치지 않아서예요 (알림 id 와 같은 모양).
+- `rooms` 의 전체 방(`role_id` NULL)은 `UQ_room_role` 로 하나만 지켜지지 않아서(NULL 끼리는 안 겹침) `rooms.services.room_for` 가 원정대 행을 잠그고 만들어요.
 
 Django 가 꼭 필요로 해서 ERD 와 조금 달라요. ERD 를 다음에 고칠 때 반영할지 정해요.
 

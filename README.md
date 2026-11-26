@@ -63,6 +63,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
 | `backend/handoffs/` | 넘겨주기 카드(요청), 카드 링크, 주고받은 기록 (C) |
+| `backend/rooms/` | 역할 방 · 전체 방, 대화, 첨부, 읽음 위치 |
 | `backend/plans/` | 기획안, 루트의 구간(체크포인트), 구간 할 일 — 지금은 모델만 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
@@ -132,6 +133,13 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `block` / `unblock` | accepted (안 막힘) / 막힘 | 그대로 |
 | `comment` | 언제나 | 그대로 |
 
+### 방 대화 (C)
+
+| | 주소 | 요청 → 응답 | 비고 |
+|---|---|---|---|
+| ✅ | `GET /rooms/<room>/messages` | → `RoomMessage[]` | `room` = `all` · `design` · `front` · `back`. 그 방에 쓴 메시지만 (전체 방 글을 역할 방에 함께 보여 주는 건 프론트가 해요). 원정대원은 모든 방을 읽을 수 있어요 |
+| ✅ | `POST /rooms/<room>/messages` | `RoomMessage` → 201 `RoomMessage` | 전체 방은 누구나, **역할 방은 그 역할을 맡은 사람만** 말할 수 있어요. 아니면 403 `room_read_only` (부탁은 `POST /requests` 로). id 는 프론트가 만들고, 같은 id 로 다시 보내면 그대로 돌려줘요 |
+
 ### 다음에 만들 API (프론트가 이미 부르는 것)
 
 | 주소 | 담당 (안) | 프론트 타입 |
@@ -139,7 +147,6 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `GET` · `PUT /plan` | B | `Plan { unit, date, time, roles, checkpoints }` |
 | `POST /files/plan` | B | `PlanFile` |
 | `POST /route/recommend` | B | `RouteRecommendInput` → `RouteRecommendation` |
-| `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
 | `GET /notifications`, `POST /notifications/read` | C | `Notification`, `MarkReadInput` |
 
 ## 다른 앱이 A 를 쓰는 법
