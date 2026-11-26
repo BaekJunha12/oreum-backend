@@ -8,21 +8,22 @@
     project_for_edit(user)             일정 · 기획안을 고칠 원정대 (리더만, 원정대가 없으면 새로 만듦)
     set_current_document(project, user, **칸)   지금 쓰는 기획안을 바꿈 (이전 것은 is_current=False)
     save_plan_file(user, upload)       올린 기획안 파일 검사 · 저장 → PlanDocument
+    recommend_route(user, ...)         AI 추천 루트 → [{ id, name }] (지금은 고정 목록, 저장은 안 함)
 """
 import os
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from projects.errors import Forbidden
+from projects.errors import Forbidden, NotFound
 from projects.models import Project
 from projects.services import create_project, current_project, is_leader
 
-from .models import BASE_CAMP_NAME, Checkpoint, PlanDocument
+from .models import BASE_CAMP_NAME, MAX_CHECKPOINTS, Checkpoint, PlanDocument
 
 DEFAULT_PROJECT_NAME = '내 원정대'
 MAX_PLAN_FILE_BYTES = 20 * 1024 * 1024  # 20MB
@@ -39,6 +40,7 @@ PLAN_FILE_TYPES = {
 }
 TEXT_EXTENSIONS = ('.md', '.txt')
 TEXT_LIMIT = 200_000  # 본문으로 저장할 글자 수 (AI 에 넣을 때는 더 줄일 수 있어요)
+DEMO_ROUTE = ['로그인', '메인 피드', '마이페이지', '알림']  # AI 가 붙기 전의 추천 루트 (프론트 목업과 같아요)
 
 
 def checkpoint_by_seq(project, seq):
@@ -130,3 +132,52 @@ def save_plan_file(user, upload):
     except Exception:
         default_storage.delete(stored)  # 기록을 못 남겼으면 파일도 남기지 않아요
         raise
+
+
+# ───────── AI 추천 루트 ─────────
+
+def recommend_checkpoint_names(*, document, deadline, roles):
+    """기획안으로 만든 체크포인트 이름들 (베이스 캠프 · 정상 빼고). 지금은 AI 없이 고정 목록이에요.
+
+    document = 기획안 PlanDocument (프론트가 예시 파일 이름만 보낸 경우 None), deadline · roles = 요청 값. 지금은 아무것도 안 써요.
+    AI 를 붙일 때는 **이 함수 본문만** 바꾸면 돼요. 같이 할 것:
+      - `claude-api` 스킬로 모델 · PDF 입력 방식 확인, 키는 환경 변수(ANTHROPIC_API_KEY), 프론트가 60초까지 기다려서 50초쯤에 끊고 504 { message, code }
+      - 같은 기획안이면 AI 를 다시 부르지 않기: 프론트 sourceSignature(planStore.ts)를 파이썬으로 옮기고(UTF-16 djb2, node 로 값 대조)
+        **AI 가 처음 만든 결과**를 signature 로 캐시 — 고쳐 둔 루트를 돌려주면 "추천으로 되돌리기"가 아무 일도 안 해요
+      - 링크는 서버가 가져오지 않아요 (SSRF · 로그인이 필요한 문서). 읽을 수 없다는 안내 오류로
+    """
+    return list(DEMO_ROUTE)
+
+
+@transaction.atomic
+def recommend_route(user, *, deadline, roles, source):
+    """AI 추천 루트 만들기. 체크포인트를 저장하지는 않아요 (프론트가 이어서 PUT /plan 으로 저장).
+
+    기획안은 원정대의 지금 기획안으로 기록해요: 파일은 이미 올려 둔 것(fileId)을 가리키고, 링크 · 글은 여기서 기록해요
+    (같은 링크 · 글로 다시 부르면 — "추천으로 되돌리기" — 새로 만들지 않아요). 리더만, 원정대가 없으면 요청의 마감 · 역할로 만들어요.
+    """
+    project = project_for_edit(
+        user,
+        deadline_at=timezone.make_aware(datetime.combine(deadline['date'], deadline['time'])),
+        schedule_unit=deadline['unit'],
+        roles=[{'role_key': r.get('role'), 'label': r['label'], 'headcount': r['people']} for r in roles],
+    )  # 아래에서 오류가 나면 방금 만든 원정대도 같이 되돌려져요 (atomic)
+
+    kind = source['type']
+    if kind == PlanDocument.FILE:
+        document = None  # fileId 없이 이름만 오면 (예시 기획안) 가리킬 기록이 없어요
+        if source.get('fileId'):
+            document = PlanDocument.objects.filter(project=project, source_type=PlanDocument.FILE, pk=_pk(source['fileId'])).first()
+            if document is None:
+                raise NotFound('기획안 파일을 찾을 수 없어요', code='plan_file_not_found')
+    else:
+        fields = {'source_type': kind, 'link_url': source['url']} if kind == PlanDocument.LINK else {'source_type': kind, 'text_content': source['text'][:TEXT_LIMIT]}
+        document = PlanDocument.objects.filter(project=project, is_current=True, **fields).first() or set_current_document(project, user, **fields)
+
+    names = recommend_checkpoint_names(document=document, deadline=deadline, roles=roles)
+    return [{'id': f'r{i}', 'name': name} for i, name in enumerate(names[:MAX_CHECKPOINTS], start=1)]
+
+
+def _pk(value):
+    """프론트가 보낸 글자 id → 숫자 (숫자가 아니면 어떤 행도 가리키지 않는 -1)."""
+    return int(value) if value.isascii() and value.isdigit() else -1
