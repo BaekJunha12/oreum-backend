@@ -49,7 +49,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | 경로 | 내용 |
 |---|---|
 | `backend/config/` | 설정, 주소 목록, CORS, 오류 모양 |
-| `docs/db/` | ERD (테이블 설계) |
+| `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
 ## 프론트와의 약속
 
