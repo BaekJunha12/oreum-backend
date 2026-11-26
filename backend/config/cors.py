@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.utils.cache import patch_vary_headers
 
 ALLOW_METHODS = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-DEFAULT_HEADERS = 'authorization, content-type, accept'
+DEFAULT_HEADERS = 'authorization, content-type, accept, x-project-id'
 
 
 class CorsMiddleware:
