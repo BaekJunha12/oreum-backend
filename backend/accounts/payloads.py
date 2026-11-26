@@ -7,7 +7,10 @@ FALLBACK_ROLE = 'design'
 
 
 def role_of(user):
-    return FALLBACK_ROLE
+    """지금 원정대에서 맡은 첫 기본 역할 (projects.services.current_project 참고)."""
+    from projects.services import primary_role_key  # projects 가 accounts 를 가져다 쓰므로 여기서만 늦게 가져옴
+
+    return primary_role_key(user) or FALLBACK_ROLE
 
 
 def user_payload(user):
