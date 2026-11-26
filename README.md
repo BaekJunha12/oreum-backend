@@ -80,7 +80,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 2. 프론트 `main2/.env.local` 에 `VITE_API_URL=http://localhost:8000/api` → `npm run dev` 다시 켜기
 3. http://localhost:5183 에서 `hyeseung@example.com` / `oreum-demo-1234` 로 로그인
 
-지금은 로그인 · 내 정보 · 팀 스페이스만 서버 값이에요. 일정 · 카드 · 방 · 알림은 아래 "다음에 만들 API" 가 생기면 붙어요 (그 전에는 프론트에 "불러오지 못했어요" 알림이 떠요).
+지금은 로그인 · 내 정보 · 팀 스페이스만 서버 값이에요. 일정 · 카드 · 방 · 알림은 아래 "다음에 만들 API" 가 생기면 붙어요. 그 전에는 프론트에 `일정 불러오기 실패 — 아직 없는 API 예요 (GET /api/plan)` 같은 알림이 떠요 (없는 `/api/` 주소는 이렇게 답해요).
 
 ## API
 
