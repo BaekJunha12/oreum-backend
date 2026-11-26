@@ -3,11 +3,12 @@
 앱마다 urls.py 를 만들고 여기에 한 줄씩 더해요.
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from .views import health
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health', health, name='health'),
+    path('api/', include('accounts.urls')),
 ]

@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -99,12 +101,17 @@ USE_TZ = True
 STATIC_URL = 'static/'
 TEST_RUNNER = 'config.test_runner.BackendDiscoverRunner'  # 저장소 맨 위에서 실행해도 테스트를 찾게
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'accounts.User'
 
 # 프론트(main2)가 부르는 주소는 끝에 / 가 없어요 (/auth/login). 주소도 그대로 맞춥니다.
 APPEND_SLASH = False
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'accounts.authentication.BearerTokenAuthentication',  # 프론트: Authorization: Bearer <토큰>
+        'rest_framework.authentication.SessionAuthentication',  # /admin 로그인한 채 브라우저로 /api 를 열어 볼 때
+    ],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     # 오류는 항상 { "message": "보여 줄 문구" } — 프론트가 이 문구를 그대로 알림에 띄워요
     'EXCEPTION_HANDLER': 'config.errors.exception_handler',
