@@ -13,7 +13,7 @@
 | B. 기획안 · 루트 | `plan_documents`, `checkpoints`, `checkpoint_tasks` | `plans` |
 | C. 넘겨주기 카드 | `handoff_cards`, `card_links`, `card_events` | `handoffs` |
 | D. 방 · 대화 | `rooms`, `room_messages`, `message_attachments`, `room_reads` | (예정) |
-| E. 알림 | `notifications` | (예정) |
+| E. 알림 | `notifications` | `notifications` |
 | F · G (2차) | GitHub 연결 · 버전 비교 · 회고 | 범위 확정 전 |
 
 ## ERD 에 없지만 코드에 있는 것

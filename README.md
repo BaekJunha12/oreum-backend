@@ -63,6 +63,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
 | `backend/handoffs/` | 넘겨주기 카드(요청), 카드 링크, 주고받은 기록 (C) |
+| `backend/notifications/` | 알림 (카드 기록 → 받는 사람별 한 줄) |
 | `backend/plans/` | 기획안, 루트의 구간(체크포인트), 구간 할 일 — 지금은 모델만 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
@@ -132,6 +133,13 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `block` / `unblock` | accepted (안 막힘) / 막힘 | 그대로 |
 | `comment` | 언제나 | 그대로 |
 
+### 알림 (C)
+
+| | 주소 | 요청 → 응답 | 비고 |
+|---|---|---|---|
+| ✅ | `GET /notifications` | → `Notification[]` | 새것부터 최대 200개. 카드 기록이 생기면 **맞은편 역할**을 맡은 원정대원에게 한 줄씩 생겨요 (기록한 본인은 빼요) |
+| ✅ | `POST /notifications/read` | `{ ids }` → 204 | id = `카드id:기록id`. 내 알림만 읽음으로 바뀌고, 없는 id 는 넘어가요 |
+
 ### 다음에 만들 API (프론트가 이미 부르는 것)
 
 | 주소 | 담당 (안) | 프론트 타입 |
@@ -140,7 +148,6 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `POST /files/plan` | B | `PlanFile` |
 | `POST /route/recommend` | B | `RouteRecommendInput` → `RouteRecommendation` |
 | `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
-| `GET /notifications`, `POST /notifications/read` | C | `Notification`, `MarkReadInput` |
 
 ## 다른 앱이 A 를 쓰는 법
 
