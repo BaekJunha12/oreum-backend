@@ -30,6 +30,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
+    'accounts',
+    'workspaces',
+    'projects',
+    'plans',
+    'handoffs',
+    'notifications',
+    'rooms',
+    'versions',
 ]
 
 MIDDLEWARE = [
@@ -97,14 +106,23 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+# 올린 기획안 파일을 두는 곳 (backend/media/, git 에는 안 올라가요). 공개 주소 없이 GET /api/files/plan/<id> 로만 내려받아요
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
+# 기획안 파일은 20MB 까지 (plans.services.MAX_PLAN_FILE_BYTES). 그보다 크면 메모리 대신 임시 파일로 받아요
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 TEST_RUNNER = 'config.test_runner.BackendDiscoverRunner'  # 저장소 맨 위에서 실행해도 테스트를 찾게
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'accounts.User'
 
 # 프론트(main2)가 부르는 주소는 끝에 / 가 없어요 (/auth/login). 주소도 그대로 맞춥니다.
 APPEND_SLASH = False
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'accounts.authentication.BearerTokenAuthentication',  # 프론트: Authorization: Bearer <토큰>
+        'rest_framework.authentication.SessionAuthentication',  # /admin 로그인한 채 브라우저로 /api 를 열어 볼 때
+    ],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     # 오류는 항상 { "message": "보여 줄 문구" } — 프론트가 이 문구를 그대로 알림에 띄워요
     'EXCEPTION_HANDLER': 'config.errors.exception_handler',
@@ -112,3 +130,6 @@ REST_FRAMEWORK = {
 
 # 이 API를 브라우저에서 불러도 되는 프론트 주소 (config/cors.py)
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5183,http://127.0.0.1:5183')
+
+# GitHub 웹훅 비밀값 (POST /api/github/webhook). 비어 있으면 웹훅은 꺼져 있어요 (404 webhook_disabled)
+GITHUB_WEBHOOK_SECRET = os.environ.get('GITHUB_WEBHOOK_SECRET', '')

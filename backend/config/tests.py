@@ -37,6 +37,18 @@ class HealthAndCorsTests(SimpleTestCase):
         self.assertEqual(res['Access-Control-Allow-Origin'], 'https://oreum.example')
 
 
+class UnknownApiTests(SimpleTestCase):
+    def test_unknown_api_path_answers_with_message(self):
+        res = self.client.get('/api/no-such-thing')
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.json(), {'message': '아직 없는 API 예요 (GET /api/no-such-thing)', 'code': 'no_such_api'})
+
+    def test_trailing_slash_is_not_added(self):
+        res = self.client.post('/api/health/', {})
+        self.assertEqual(res.status_code, 404)
+        self.assertIn('/api/health/', res.json()['message'])
+
+
 class ErrorShapeTests(SimpleTestCase):
     def test_default_messages_become_short_korean(self):
         res = exception_handler(exceptions.NotAuthenticated(), {})

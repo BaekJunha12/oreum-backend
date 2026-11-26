@@ -20,6 +20,8 @@ FRIENDLY = {
     exceptions.ParseError: '요청 내용을 읽지 못했어요',
 }
 
+ALWAYS_FRIENDLY = {exceptions.NotAuthenticated, exceptions.AuthenticationFailed}
+
 
 def first_error(data, field=None):
     """입력 오류 묶음에서 첫 문구 하나를 꺼냄. 칸 이름이 있으면 '칸: 문구'."""
@@ -37,7 +39,8 @@ def message_for(exc, data):
         return first_error(data)
     friendly = FRIENDLY.get(type(exc))
     detail = getattr(exc, 'detail', None)
-    if friendly and str(detail) == str(exc.default_detail):
+    # 로그인 문제는 원인(토큰 없음 · 틀림 · 비활성)과 상관없이 "다시 로그인" 한 문구로
+    if friendly and (type(exc) in ALWAYS_FRIENDLY or str(detail) == str(exc.default_detail)):
         return friendly
     return str(detail) if detail else str(exc)
 
