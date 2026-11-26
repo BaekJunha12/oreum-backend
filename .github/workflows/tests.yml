@@ -1,0 +1,28 @@
+# PR 을 열거나 커밋을 더하면 Django 테스트를 돌려요. 실패하면 PR 에 빨간 X 가 떠요.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, development]
+
+jobs:
+  django:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install
+        run: pip install -r backend/requirements.txt
+
+      - name: Check missing migrations
+        run: python backend/manage.py makemigrations --check --dry-run
+
+      - name: Test
+        run: python backend/manage.py test --verbosity 2
