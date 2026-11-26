@@ -1,0 +1,4 @@
+# 윈도우에서 받아도 줄바꿈이 LF 로 유지돼야 하는 파일 (CRLF 가 되면 커밋 검사 훅이 고장 나요)
+*.sh          text eol=lf
+.githooks/*   text eol=lf
+*.py          text eol=lf

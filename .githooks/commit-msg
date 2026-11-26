@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# git commit 시 자동 실행: 규칙에 안 맞으면 커밋을 막음
+# 설치(클론 후 1회): git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/scripts/check-commit-msg.sh" "$1"
