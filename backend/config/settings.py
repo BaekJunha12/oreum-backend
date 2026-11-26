@@ -97,6 +97,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+TEST_RUNNER = 'config.test_runner.BackendDiscoverRunner'  # 저장소 맨 위에서 실행해도 테스트를 찾게
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 프론트(main2)가 부르는 주소는 끝에 / 가 없어요 (/auth/login). 주소도 그대로 맞춥니다.

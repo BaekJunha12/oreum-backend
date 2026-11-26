@@ -39,7 +39,8 @@ git config commit.template .gitmessage
 ## 테스트
 
 ```bash
-python backend/manage.py test
+python backend/manage.py test            # 전부
+python backend/manage.py test projects   # 한 앱만
 ```
 
 PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 검사(`commit-convention`)를 돌려요.
