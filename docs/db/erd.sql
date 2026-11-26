@@ -1,5 +1,5 @@
 -- =====================================================================
--- Oreum(오름) ERD 초안 v0.4 — MySQL 8 (ERDCloud "가져오기"에 붙여 넣는 용도)
+-- Oreum(오름) ERD 초안 v0.5 — MySQL 8 (ERDCloud "가져오기"에 붙여 넣는 용도)
 -- 근거: Figma "11/18 추가회의" 페이지(최종 3 · 다듬음, 원정대 구성·초대 플로우, 요청 흐름, 루트 설정 규칙, 역할별 협업 웹 기획안 §1~§6)
 -- 용어: 기획안의 "시퀀스" = 최신 화면의 "구간(체크포인트)" → checkpoints 표 하나로 처리
 --       프론트 A11y-Translator/frontend 의 oreum-main 브랜치 main2/ (api/types.ts, data/*Store.ts, README)
@@ -7,6 +7,7 @@
 -- 1차(지금 프론트가 쓰는 것) = A~E, 2차(화면만 있고 확정 전) = F~G
 -- 프론트가 id 를 만들어 보내는 것(카드 · 기록 · 메시지)은 VARCHAR(64) 기본키
 -- 외래키는 맨 아래 ALTER TABLE 로 모아 둠 (가져오기 순서 문제 방지)
+-- v0.5 (팀 변경 11/26): 시간 단위 일정 — checkpoints.start_date · end_date(DATE) → start_at · end_at(DATETIME)
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -144,8 +145,8 @@ CREATE TABLE `checkpoints` (
   `project_id`    BIGINT       NOT NULL COMMENT '원정대',
   `seq`           INT          NOT NULL COMMENT '순서. 0 = 베이스캠프(항상 있음, 공통 작업), 1~ = 화면 구간(의존성 순서). 정상은 projects.deadline_at',
   `name`          VARCHAR(100) NOT NULL COMMENT '구간 이름(베이스캠프 · 로그인 · 메인 피드 …)',
-  `start_date`    DATE         NULL     COMMENT '구간 시작일',
-  `end_date`      DATE         NULL     COMMENT '목표 완성일(구간끼리 겹쳐도 됨)',
+  `start_at`      DATETIME     NULL     COMMENT '구간 시작 시각(일 단위면 그날 0시, 시간 단위면 정시) — v0.5',
+  `end_at`        DATETIME     NULL     COMMENT '목표 완성 시각(구간끼리 겹쳐도 됨, "n일 남음" · "n시간 남음" 계산) — v0.5',
   `source`        VARCHAR(10)  NOT NULL DEFAULT 'plan' COMMENT 'plan(기획안의 MVP 화면) | ai(화면 목록이 없어 AI가 추론 → AI 추천 태그) | manual(직접 추가)',
   `order_reason`  VARCHAR(500) NULL     COMMENT '기획안 순서와 다르게 놓았을 때 그 이유(화면에 보여 줌)',
   `arrived_at`    DATETIME     NULL     COMMENT '이 구간에 도착한 시각(이때 앞 구간 막힘·지연을 반영해 할 일 추천)',
