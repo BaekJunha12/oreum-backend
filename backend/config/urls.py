@@ -14,5 +14,6 @@ urlpatterns = [
     path('api/', include('workspaces.urls')),
     path('api/', include('projects.urls')),
     path('api/', include('plans.urls')),
+    path('api/', include('handoffs.urls')),
     re_path(r'^api/', api_not_found),  # 맨 끝: 위에서 못 찾은 /api/ 주소
 ]
