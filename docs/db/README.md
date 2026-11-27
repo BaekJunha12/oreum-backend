@@ -10,7 +10,7 @@
 |---|---|---|
 | A. 계정 · 팀 스페이스 | `users`, `user_identities`, `workspaces`, `workspace_members` | `accounts`, `workspaces` |
 | B. 원정대 · 역할 · 초대 | `projects`, `project_roles`, `project_members`, `project_member_roles`, `project_invitations`, `invitation_roles` | `projects` |
-| B. 기획안 · 루트 | `plan_documents`, `checkpoints`, `checkpoint_tasks` | `plans` (`checkpoints` 만 만듦, 나머지 예정) |
+| B. 기획안 · 루트 | `plan_documents`, `checkpoints`, `checkpoint_tasks` | `plans` |
 | C. 넘겨주기 카드 | `handoff_cards`, `card_links`, `card_events` | (예정) |
 | D. 방 · 대화 | `rooms`, `room_messages`, `message_attachments`, `room_reads` | (예정) |
 | E. 알림 | `notifications` | (예정) |
