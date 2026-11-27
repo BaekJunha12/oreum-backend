@@ -144,6 +144,23 @@ api_as(front.user).get('/api/plan')                    # Bearer 토큰을 붙인
 
 **지금 원정대** — 프론트는 `GET /plan` 처럼 원정대 id 없이 불러요. 그래서 서버가 **가장 최근에 들어간 원정대**를 지금 원정대로 봐요 (`current_project`). 원정대를 고르는 화면이 생기면 이 함수만 바꾸면 돼요.
 
+## 다른 앱이 B 를 쓰는 법
+
+C 도 구간 표를 직접 뒤지지 말고 `plans/services.py` 함수를 불러요. 구간(`Checkpoint`)은 원정대마다 0번(베이스 캠프)부터 이어지는 번호 `seq` 가 있어요.
+
+```python
+from plans.models import Checkpoint
+from plans.services import checkpoint_by_seq, current_checkpoint
+
+cp = current_checkpoint(project)       # 지금 구간 — 카드 · 메시지에 구간을 안 골랐을 때 기본값 (항상 하나)
+cp = checkpoint_by_seq(project, 2)     # 프론트가 보낸 구간 번호 → 구간 (없으면 None)
+cp.seq                                 # 프론트로 내보낼 때 쓰는 번호 (HandoffCard.checkpoint)
+```
+
+- 프론트의 카드 · 메시지는 구간을 id 가 아니라 **번호**로 가리켜요. 저장할 때는 `checkpoint_by_seq` 로 구간을 찾아 FK 에 넣고, 응답에는 `seq` 를 내보내요.
+- 지금 구간 = 안 끝난 화면 구간 중 번호가 가장 작은 것 (전부 끝났으면 마지막, 화면 구간이 없으면 베이스 캠프).
+- 구간을 지우면 카드 · 메시지의 `checkpoint_id` 는 비워져요 (`ON DELETE SET NULL`). 일정 저장(B-04)은 구간을 지우지 않고 이름만 바꾸도록 만들 예정이에요.
+
 ## 팀이 정할 것
 
 | 무엇 | 지금 코드 | 바꾸면 고칠 곳 |
