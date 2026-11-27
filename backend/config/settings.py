@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'workspaces',
     'projects',
     'plans',
+    'handoffs',
 ]
 
 MIDDLEWARE = [
