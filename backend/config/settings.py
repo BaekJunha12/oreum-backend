@@ -102,6 +102,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+# 올린 기획안 파일을 두는 곳 (backend/media/, git 에는 안 올라가요). 공개 주소로 열어 주지 않아요
+MEDIA_ROOT = BASE_DIR / 'media'
 TEST_RUNNER = 'config.test_runner.BackendDiscoverRunner'  # 저장소 맨 위에서 실행해도 테스트를 찾게
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
