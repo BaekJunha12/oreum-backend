@@ -63,7 +63,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
 | `backend/handoffs/` | 넘겨주기 카드(요청), 카드 링크, 주고받은 기록 (C) |
-| `backend/plans/` | 기획안, 루트의 구간(체크포인트), 구간 할 일 — 지금은 모델만 (B 진행 중) |
+| `backend/plans/` | 기획안 파일 올리기, 루트의 구간(체크포인트), 구간 할 일 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
 ## 프론트와의 약속
@@ -112,6 +112,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | ✅ | `GET /invitations/<token>` | → `{ project, invitedBy, roles, status, expiresAt }` | 로그인 전에도 볼 수 있어요 |
 | ✅ | `POST /invitations/<token>/accept` | → `{ project, member }` | 원정대원이 되고 초대의 역할을 맡아요 |
 
+
 ### 넘겨주기 카드 (C)
 
 | | 주소 | 요청 → 응답 | 비고 |
@@ -132,12 +133,18 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `block` / `unblock` | accepted (안 막힘) / 막힘 | 그대로 |
 | `comment` | 언제나 | 그대로 |
 
+### 기획안 · 루트 (B)
+
+| | 주소 | 요청 → 응답 | 비고 |
+|---|---|---|---|
+| ✅ | `POST /files/plan` | multipart(칸 이름 `file`) → 201 `{ id, name, size, type, pages, url? }` | 리더만 (원정대가 아직 없으면 만들어 줘요). pdf · md · txt · 이미지, 20MB 까지. 새로 올리면 이전 기획안은 `is_current = false`. `pages` 는 아직 `null`, `url` 은 안 줘요 (파일은 `backend/media/` 에 저장, git 에는 안 올라가요) |
+
+
 ### 다음에 만들 API (프론트가 이미 부르는 것)
 
 | 주소 | 담당 (안) | 프론트 타입 |
 |---|---|---|
 | `GET` · `PUT /plan` | B | `Plan { unit, date, time, roles, checkpoints }` |
-| `POST /files/plan` | B | `PlanFile` |
 | `POST /route/recommend` | B | `RouteRecommendInput` → `RouteRecommendation` |
 | `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
 | `GET /notifications`, `POST /notifications/read` | C | `Notification`, `MarkReadInput` |
