@@ -62,7 +62,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/accounts/` | 사용자, 로그인 (Bearer 토큰) |
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
-| `backend/plans/` | 기획안, 루트의 구간(체크포인트) — 지금은 구간 모델만 (B 진행 중) |
+| `backend/plans/` | 기획안 파일 올리기, 루트의 구간(체크포인트), 구간 할 일 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
 ## 프론트와의 약속
@@ -111,12 +111,17 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | ✅ | `GET /invitations/<token>` | → `{ project, invitedBy, roles, status, expiresAt }` | 로그인 전에도 볼 수 있어요 |
 | ✅ | `POST /invitations/<token>/accept` | → `{ project, member }` | 원정대원이 되고 초대의 역할을 맡아요 |
 
+### 기획안 · 루트 (B)
+
+| | 주소 | 요청 → 응답 | 비고 |
+|---|---|---|---|
+| ✅ | `POST /files/plan` | multipart(칸 이름 `file`) → 201 `{ id, name, size, type, pages, url? }` | 리더만 (원정대가 아직 없으면 만들어 줘요). pdf · md · txt · 이미지, 20MB 까지. 새로 올리면 이전 기획안은 `is_current = false`. `pages` 는 아직 `null`, `url` 은 안 줘요 (파일은 `backend/media/` 에 저장, git 에는 안 올라가요) |
+
 ### 다음에 만들 API (프론트가 이미 부르는 것)
 
 | 주소 | 담당 (안) | 프론트 타입 |
 |---|---|---|
 | `GET` · `PUT /plan` | B | `Plan { unit, date, time, roles, checkpoints }` |
-| `POST /files/plan` | B | `PlanFile` |
 | `POST /route/recommend` | B | `RouteRecommendInput` → `RouteRecommendation` |
 | `GET` · `POST /requests`, `PATCH /requests/:id` | C | `HandoffCard`, `RequestUpdate` |
 | `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
@@ -143,6 +148,23 @@ api_as(front.user).get('/api/plan')                    # Bearer 토큰을 붙인
 ```
 
 **지금 원정대** — 프론트는 `GET /plan` 처럼 원정대 id 없이 불러요. 그래서 서버가 **가장 최근에 들어간 원정대**를 지금 원정대로 봐요 (`current_project`). 원정대를 고르는 화면이 생기면 이 함수만 바꾸면 돼요.
+
+## 다른 앱이 B 를 쓰는 법
+
+C 도 구간 표를 직접 뒤지지 말고 `plans/services.py` 함수를 불러요. 구간(`Checkpoint`)은 원정대마다 0번(베이스 캠프)부터 이어지는 번호 `seq` 가 있어요.
+
+```python
+from plans.models import Checkpoint
+from plans.services import checkpoint_by_seq, current_checkpoint
+
+cp = current_checkpoint(project)       # 지금 구간 — 카드 · 메시지에 구간을 안 골랐을 때 기본값 (항상 하나)
+cp = checkpoint_by_seq(project, 2)     # 프론트가 보낸 구간 번호 → 구간 (없으면 None)
+cp.seq                                 # 프론트로 내보낼 때 쓰는 번호 (HandoffCard.checkpoint)
+```
+
+- 프론트의 카드 · 메시지는 구간을 id 가 아니라 **번호**로 가리켜요. 저장할 때는 `checkpoint_by_seq` 로 구간을 찾아 FK 에 넣고, 응답에는 `seq` 를 내보내요.
+- 지금 구간 = 안 끝난 화면 구간 중 번호가 가장 작은 것 (전부 끝났으면 마지막, 화면 구간이 없으면 베이스 캠프).
+- 구간을 지우면 카드 · 메시지의 `checkpoint_id` 는 비워져요 (`ON DELETE SET NULL`). 일정 저장(B-04)은 구간을 지우지 않고 이름만 바꾸도록 만들 예정이에요.
 
 ## 팀이 정할 것
 
