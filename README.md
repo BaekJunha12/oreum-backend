@@ -62,6 +62,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/accounts/` | 사용자, 로그인 (Bearer 토큰) |
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
+| `backend/plans/` | 기획안, 루트의 구간(체크포인트) — 지금은 구간 모델만 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
 ## 프론트와의 약속
