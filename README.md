@@ -138,6 +138,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | | 주소 | 요청 → 응답 | 비고 |
 |---|---|---|---|
 | ✅ | `POST /files/plan` | multipart(칸 이름 `file`) → 201 `{ id, name, size, type, pages, url? }` | 리더만 (원정대가 아직 없으면 만들어 줘요). pdf · md · txt · 이미지, 20MB 까지. 새로 올리면 이전 기획안은 `is_current = false`. `pages` 는 아직 `null`, `url` 은 안 줘요 (파일은 `backend/media/` 에 저장, git 에는 안 올라가요) |
+| ✅ | `POST /route/recommend` | `{ deadline: { date, time, unit }, roles, source }` → `{ checkpoints: [{ id, name }] }` | 리더만. **지금은 AI 없이 고정 목록**(로그인 · 메인 피드 · 마이페이지 · 알림), 최대 8개. 저장은 안 해요 (프론트가 이어서 `PUT /plan`). `source` 가 링크 · 글이면 지금 쓰는 기획안으로 기록, 파일이면 `fileId` 로 올려 둔 파일을 확인 (없으면 404 `plan_file_not_found`) |
 
 
 ### 다음에 만들 API (프론트가 이미 부르는 것)
@@ -145,7 +146,6 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | 주소 | 담당 (안) | 프론트 타입 |
 |---|---|---|
 | `GET` · `PUT /plan` | B | `Plan { unit, date, time, roles, checkpoints }` |
-| `POST /route/recommend` | B | `RouteRecommendInput` → `RouteRecommendation` |
 | `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
 | `GET /notifications`, `POST /notifications/read` | C | `Notification`, `MarkReadInput` |
 
