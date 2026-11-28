@@ -62,6 +62,7 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | `backend/accounts/` | 사용자, 로그인 (Bearer 토큰) |
 | `backend/workspaces/` | 팀 스페이스, 팀 스페이스 멤버 |
 | `backend/projects/` | 원정대, 역할, 원정대원, 초대, `seed_demo` 명령 |
+| `backend/handoffs/` | 넘겨주기 카드(요청), 카드 링크, 주고받은 기록 (C) |
 | `backend/plans/` | 기획안 파일 올리기, 루트의 구간(체크포인트), 구간 할 일 (B 진행 중) |
 | `docs/db/` | ERD (테이블 설계) — [`docs/db/README.md`](docs/db/README.md) |
 
@@ -111,6 +112,27 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | ✅ | `GET /invitations/<token>` | → `{ project, invitedBy, roles, status, expiresAt }` | 로그인 전에도 볼 수 있어요 |
 | ✅ | `POST /invitations/<token>/accept` | → `{ project, member }` | 원정대원이 되고 초대의 역할을 맡아요 |
 
+
+### 넘겨주기 카드 (C)
+
+| | 주소 | 요청 → 응답 | 비고 |
+|---|---|---|---|
+| ✅ | `GET /requests` | → `HandoffCard[]` | 지금 원정대의 카드. 원정대가 없으면 `[]` |
+| ✅ | `POST /requests` | `HandoffCard` → 201 `HandoffCard` | id 는 프론트가 만들어요. 같은 id 로 다시 보내면 만든 카드를 그대로 돌려줘요 (다른 원정대가 쓴 id 면 409 `card_id_taken`) |
+| ✅ | `PATCH /requests/<id>` | `{ action, card }` → `HandoffCard` | `action` 이 지금 상태에서 할 수 있는 일이고 `card.status` 가 그 결과일 때만 저장해요. 아니면 409 `card_conflict` (다른 사람이 먼저 바꿈). 기록(history)은 새 id 만 더해지고 이미 있는 기록은 안 바뀌어요 |
+
+상태가 바뀌는 규칙 (`handoffs/services.py` 의 `TRANSITIONS`):
+
+| 한 일 | 할 수 있는 상태 | 끝난 뒤 |
+|---|---|---|
+| `accept` · `acceptProposed` | requested | accepted |
+| `propose` | requested | 그대로 |
+| `deliver` | requested · accepted | delivered |
+| `fix` | delivered | accepted |
+| `confirm` | delivered | confirmed |
+| `block` / `unblock` | accepted (안 막힘) / 막힘 | 그대로 |
+| `comment` | 언제나 | 그대로 |
+
 ### 기획안 · 루트 (B)
 
 | | 주소 | 요청 → 응답 | 비고 |
@@ -118,12 +140,12 @@ PR 을 열면 GitHub Actions 가 같은 테스트(`tests`)와 커밋 메시지 �
 | ✅ | `POST /files/plan` | multipart(칸 이름 `file`) → 201 `{ id, name, size, type, pages, url? }` | 리더만 (원정대가 아직 없으면 만들어 줘요). pdf · md · txt · 이미지, 20MB 까지. 새로 올리면 이전 기획안은 `is_current = false`. `pages` 는 아직 `null`, `url` 은 안 줘요 (파일은 `backend/media/` 에 저장, git 에는 안 올라가요) |
 | ✅ | `POST /route/recommend` | `{ deadline: { date, time, unit }, roles, source }` → `{ checkpoints: [{ id, name }] }` | 리더만. **지금은 AI 없이 고정 목록**(로그인 · 메인 피드 · 마이페이지 · 알림), 최대 8개. 저장은 안 해요 (프론트가 이어서 `PUT /plan`). `source` 가 링크 · 글이면 지금 쓰는 기획안으로 기록, 파일이면 `fileId` 로 올려 둔 파일을 확인 (없으면 404 `plan_file_not_found`) |
 
+
 ### 다음에 만들 API (프론트가 이미 부르는 것)
 
 | 주소 | 담당 (안) | 프론트 타입 |
 |---|---|---|
 | `GET` · `PUT /plan` | B | `Plan { unit, date, time, roles, checkpoints }` |
-| `GET` · `POST /requests`, `PATCH /requests/:id` | C | `HandoffCard`, `RequestUpdate` |
 | `GET` · `POST /rooms/:room/messages` | C | `RoomMessage` |
 | `GET /notifications`, `POST /notifications/read` | C | `Notification`, `MarkReadInput` |
 
